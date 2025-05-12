@@ -1,0 +1,61 @@
+python3 MLGWSC/contributions/sensitivity_plot.py \
+--files AresGW/results_best/test_eval_output_s24w6d1_1.hdf \
+AresGW/results_my/day/batch128/AresGWBN_e15/test.hdf \
+AresGW/results_my/day/batch128/AresGWBN_e20/test.hdf \
+AresGW/results_my/day/batch128/AresGWBN_e20/test.hdf \
+--labels AresGW AresGWBN_e15 AresGWBN_e20 wavelet wavelet_20e waveletNOSNR_e15\
+--output AresGW/test_AresGW.png --no-tex --force
+
+--files AresGW/results_best/test_eval_output_s24w6d1_1.hdf \
+AresGW/results_my/res_double/test.hdf \
+AresGW/results_my/batch128/res_doubleNEW_e15/test.hdf \
+AresGW/results_my/kanbndouble/test.hdf \
+AresGW/results_my/batch128/kanbn_doublev2_e20/test.hdf \
+AresGW/results_my/batch128/kanbn_doublev2SNR_e30/test.hdf \
+AresGW/results_my/batch128/moeres_double_e30/test.hdf \
+AresGW/results_my/batch128/moe_double_e15/test.hdf \
+AresGW/results_my/batch128/moe30e_double_e20/test.hdf \
+AresGW/results_my/batch128/moe30e_double_e30/test.hdf \
+AresGW/results_my/batch128/moe30e_doubleSNR_e20/test.hdf \
+AresGW/results_my/batch128/moe30e_doubleSNR_e30/test.hdf \
+AresGW/results_my/batch128/moe8_double_e15/test.hdf \
+--labels AresGWv1 res_double res_doubleNEW \
+kanbn_double kanbn_doublev2 kanbn_doublev2SNR \
+moeres_double moe_double15e \
+moe_double20e moe_double30e \
+moe_doubleSNR20e moe_doubleSNR30e \
+moe8_double --output AresGW/test_real.png  --xlim 1 10000000  --no-tex --force'
+
+'''python3 MLGWSC/contributions/sensitivity_plot.py \
+--files AresGW/results_my/batch128/res_doubleNEW_e15/test.hdf \
+AresGW/results_my/batch128/res_doubleBN20e_e20/test.hdf \
+AresGW/results_my/batch128/moeres_double30e_e30/test.hdf \
+AresGW/results_my/batch128/moeres8ek4_double_e20/test.hdf \
+AresGW/results_my/batch128/moeresBN_double_e20/test.hdf \
+AresGW/results_my/batch128/moeres8ek4BN_double_e20/test.hdf \
+--labels res_double res_doubleBN_e20 moeres moeres8ek4 moeresBN moeres8ek4BN \
+--output AresGW/test_week.png --xlim 1 1000 --ylim 500 2000 --no-tex --force'''
+
+'''python3 MLGWSC/contributions/sensitivity_plot.py \
+--files AresGW/results_my/batch128/res_doubleNEW_e15/test.hdf \
+AresGW/results_my/batch128/res_doubleBN_e15week/test.hdf \
+AresGW/results_my/batch128/res_doubleBN20e_e20/test.hdf \
+AresGW/results_my/batch128/res_doubleBN30e_e25/test.hdf \
+AresGW/results_my/day/batch128/AresGWBN_e15/test.hdf \
+--labels res_double res_doubleBN_e15 res_doubleBN_e20 res_doubleBN_e25 AresGWBN \
+--output AresGW/test_week2.png --xlim 1 1000 --ylim 800 2000 --no-tex --force'''
+
+'''python3 MLGWSC/contributions/sensitivity_plot.py \
+--files AresGW/results_my/batch128/res_doubleNEW_e15/test.hdf \
+AresGW/results_my/batch128/res_doubleBN_e15/test.hdf \
+AresGW/results_my/batch128/res_doubleBN20e_e15/test.hdf \
+AresGW/results_my/batch128/res_doubleBN20e_e20/test.hdf \
+AresGW/results_my/batch128/res_doubleBN30e_e25/test.hdf \
+AresGW/results_my/batch128/moeres_double30e_e30/test.hdf \
+AresGW/results_my/batch128/moeres8ek4_double_e20/test.hdf \
+--labels res_double res_doubleBN res_doubleBN20e_e15 res_doubleBN20e_e20 res_doubleBN30e_e25 moeres moeres8e4k \
+--output AresGW/test_week.png --xlim 1 1000 --ylim 800 2500 --no-tex --force'''
+
+#--xlim 1 1000 --ylim 800 2500
+#AresGW/results_best/test_eval_output_s24w6d1_1.hdf \
+#AresGW/results_my/batch128/res_doubleBN_e15/test.hdf \
