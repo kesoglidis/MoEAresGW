@@ -74,22 +74,13 @@ class MoE(nn.Module):
         self.input_size = input_size
         self.k = k
         self.temperature = temperature
+        self.bottleneck = bottleneck
 
         self.usage = torch.zeros(num_experts)
 
         # instantiate experts
-        # print(input_size)
-        
-     
-        self.gating_device = 'cuda:0'  # or specify
-        self.expert_devices = [f"cuda:{i}" for i in range(num_experts)]
-        self.parallel = Parallelism(self.expert_devices)
-
-        self.experts = nn.ModuleList([
-            Expert(input_size, output_size, bottleneck, stride).to(self.expert_devices[i])
-            for i in range(num_experts)
-        ])
-
+        self.experts = nn.ModuleList([ResBlock(self.input_size, self.output_size, self.bottleneck, stride=stride) for i in range(self.num_experts)])
+            
         self.w_gate = nn.Parameter(torch.zeros(input_size, num_experts), requires_grad=True)
         self.w_noise = nn.Parameter(torch.zeros(input_size, num_experts), requires_grad=True)
 
@@ -105,6 +96,7 @@ class MoE(nn.Module):
             self.experts[i].load_state_dict(self.experts[0].state_dict())
         
         assert(self.k <= self.num_experts)
+
 
     def cv_squared(self, x):
         """The squared coefficient of variation of a sample.
@@ -124,7 +116,6 @@ class MoE(nn.Module):
         return x.float().var() / (x.float().mean() ** 2 + eps)
 
 
-
     def _gates_to_load(self, gates):
         """Compute the true load per expert, given the gates.
         The load is the number of examples for which the corresponding gate is >0.
@@ -134,8 +125,6 @@ class MoE(nn.Module):
         a float32 `Tensor` of shape [n]
         """
         return (gates > 0).sum(0)
-
-
 
 
     def _prob_in_top_k(self, clean_values, noisy_values, noise_stddev, noisy_top_values):
@@ -201,11 +190,9 @@ class MoE(nn.Module):
         top_k_logits = top_logits[:, :self.k]
         top_k_indices = top_indices[:, :self.k]
         top_k_gates = self.softmax(top_k_logits)
-
         
         zeros = torch.zeros_like(logits, requires_grad=True)
         gates = zeros.scatter(1, top_k_indices, top_k_gates)
-
         
         with torch.no_grad():
             for idx in top_k_indices.reshape(-1):
@@ -216,7 +203,8 @@ class MoE(nn.Module):
         else:
             load = self._gates_to_load(gates)
         return gates, load
-    
+
+
     def forward(self, x, train=True, loss_coef=1e-2):
         """Args:
         x: tensor shape [batch_size, input_size]
@@ -237,32 +225,12 @@ class MoE(nn.Module):
         loss = self.cv_squared(importance) + self.cv_squared(load)
         loss *= loss_coef
 
-        # Dispatch inputs per expert
         dispatcher = SparseDispatcher(self.num_experts, gates)
         expert_inputs = dispatcher.dispatch(x)
-
-        # Forward expert inputs in parallel
-        expert_outputs = [None] * self.num_experts
-        futures = []
-
-        for i, expert_input in enumerate(expert_inputs):
-            if expert_input is None or expert_input.numel() == 0:
-                continue
-
-            expert_input = expert_input.to(self.expert_devices[i])
-            expert_module = self.experts[i]
-
-            futures.append((
-                i,
-                expert_module(expert_input).to(x.device)  # bring back to the input device
-            ))
-
-        for i, result in futures:
-            expert_outputs[i] = result
-
-        # Combine outputs
+        gates = dispatcher.expert_to_gates()
+        expert_outputs = [self.experts[i](expert_inputs[i]) for i in range(self.num_experts)]
         y = dispatcher.combine(expert_outputs, self.conv_dims)
-
+        
         return y, loss
 
 class MoEResBlock(nn.Module):
@@ -285,38 +253,6 @@ class MoEResBlock(nn.Module):
         self.usage = self.body[0].usage
         out = F.relu(out + self.x_transform(x))
         return out, moe_loss
-    
-    def forward(self, x, train=True):
-        # x: [batch_size, channels, seq_len]
-        batch_size, channels, seq_len = x.size()
-        x_flat = x.mean(dim=2)  # Global average pooling over seq_len
-        logits = self.gate(x_flat)  # [batch_size, num_experts]
-        topk_vals, topk_indices = torch.topk(logits, self.top_k, dim=1)
-
-        # Create a mask for selected experts
-        mask = torch.zeros_like(logits)
-        mask.scatter_(1, topk_indices, 1)
-        mask = mask.unsqueeze(2).unsqueeze(3)  # [batch_size, num_experts, 1, 1]
-
-       
-        # Apply experts
-        expert_outputs = []
-        for i, expert in enumerate(self.experts):
-            # Select inputs assigned to expert i
-            expert_mask = (topk_indices == i).float().unsqueeze(2).unsqueeze(3)
-            expert_input = x_all * expert_mask
-            expert_output = expert(expert_input)
-            expert_outputs.append(expert_output)
-
-        moe_loss = 0
-
-        out, moe_loss = self.body[0](x)
-
-        self.usage = self.body[0].usage
-        out = F.relu(out + self.x_transform(x))
-        return out, moe_loss
-
-    
     
 class MoDEResNet54Double(nn.Module):
     def __init__(self, bottleneck, num_experts, top_k):
@@ -374,7 +310,7 @@ class MoDEResNet54Double(nn.Module):
                 print(x_list.shape)
                 x_all = torch.cat(x_list, dim=0)  # [batch_size * world_size, channels, seq_len]
 
-                x, _moe_loss = block(x, train)
+                x, _moe_loss = block(x_all, train)
                 moe_loss += _moe_loss
             else:
                 x = block(x, train)

@@ -68,6 +68,7 @@ class MoE(nn.Module):
         
         assert(self.k <= self.num_experts)
 
+
     def cv_squared(self, x):
         """The squared coefficient of variation of a sample.
         Useful as a loss to encourage a positive distribution to be more uniform.
@@ -86,7 +87,6 @@ class MoE(nn.Module):
         return x.float().var() / (x.float().mean() ** 2 + eps)
 
 
-
     def _gates_to_load(self, gates):
         """Compute the true load per expert, given the gates.
         The load is the number of examples for which the corresponding gate is >0.
@@ -96,8 +96,6 @@ class MoE(nn.Module):
         a float32 `Tensor` of shape [n]
         """
         return (gates > 0).sum(0)
-
-
 
 
     def _prob_in_top_k(self, clean_values, noisy_values, noise_stddev, noisy_top_values):
@@ -163,27 +161,13 @@ class MoE(nn.Module):
         top_k_logits = top_logits[:, :self.k]
         top_k_indices = top_indices[:, :self.k]
         top_k_gates = self.softmax(top_k_logits)
-
         
         zeros = torch.zeros_like(logits, requires_grad=True)
         gates = zeros.scatter(1, top_k_indices, top_k_gates)
 
-        
         with torch.no_grad():
             for idx in top_k_indices.reshape(-1):
                 self.usage[idx] += 1
-
-        # if (gates.sum(0)*self.num_experts/128.0 < 0.5).any():
-            # try:
-            #     with open("/home/tzagkari/Documents/thesis/AresGW/counter.txt", "r") as f:
-            #         counter = int(f.read().strip())
-            # except:
-            #     counter = 0
-
-            # counter += 1
-            # with open("/home/tzagkari/Documents/thesis/AresGW/counter.txt", "w") as f:
-            #     f.write(str(counter))
-            # print(gates.sum(0)*self.num_experts/128.0)
 
         if self.noisy_gating and self.k < self.num_experts:
             load = (self._prob_in_top_k(clean_logits, noisy_logits, noise_stddev, top_logits)).sum(0)
