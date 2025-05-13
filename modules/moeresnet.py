@@ -29,7 +29,7 @@ class MoE(nn.Module):
     noisy_gating: a boolean
     k: an integer - how many experts to use for each batch element
     """
-    def __init__(self, block, input_size, output_size, kernel_size=3, padding=1, stride=1, num_experts=4, k=2, temperature=1, noisy_gating=True):
+    def __init__(self, block, input_size, output_size, bottleneck, kernel_size=3, padding=1, stride=1, num_experts=4, k=2, temperature=1, noisy_gating=True):
         super(MoE, self).__init__()
         self.noisy_gating = noisy_gating
         self.num_experts = num_experts
@@ -37,13 +37,14 @@ class MoE(nn.Module):
         self.input_size = input_size
         self.k = k
         self.temperature = temperature
+        self.bottleneck = bottleneck
 
         self.usage = torch.zeros(num_experts)
 
         # instantiate experts
         # print(input_size)
         if block == ResBlock:
-            self.experts = nn.ModuleList([block(self.input_size, self.output_size, True, stride=stride) for i in range(self.num_experts)])
+            self.experts = nn.ModuleList([block(self.input_size, self.output_size, self.bottleneck, stride=stride) for i in range(self.num_experts)])
             
         elif block == ClsHead:
             self.experts = nn.ModuleList([block(self.input_size, self.output_size) for i in range(self.num_experts)])
@@ -285,7 +286,7 @@ class MoEResBlockv2(nn.Module):
         else:
             self.x_transform = nn.Identity()
 
-        self.body = nn.Sequential(MoE(ResBlock, in_channels, out_channels, stride=stride, num_experts=num_experts, k=top_k, temperature=self.temperature))
+        self.body = nn.Sequential(MoE(ResBlock, in_channels, out_channels, bottleneck, stride=stride, num_experts=num_experts, k=top_k, temperature=self.temperature))
         self.usage = torch.zeros(num_experts)
 
     def forward(self, x, train=True):
@@ -409,19 +410,24 @@ class MoEResNet54Doublev3(nn.Module):
             ResBlock(16 , 16 , bottleneck),
             ResBlock(16 , 16 , bottleneck),
             ResBlock(16 , 16 , bottleneck),
-            MoEResBlockv2(16 , 32 , bottleneck, num_experts, top_k, stride=2), # 32x1024
+            ResBlock(16 , 32 , bottleneck, stride=2),
+            # MoEResBlockv2(16 , 32 , bottleneck, num_experts, top_k, stride=2), # 32x1024
             ResBlock(32 , 32 , bottleneck),
             ResBlock(32 , 32 , bottleneck),
-            MoEResBlockv2(32 , 64 , bottleneck, num_experts, top_k, stride=2), # 64x512
+            ResBlock(32 , 64 , bottleneck, stride=2),
+            # MoEResBlockv2(32 , 64 , bottleneck, num_experts, top_k, stride=2), # 64x512
             ResBlock(64 , 64 , bottleneck),
             ResBlock(64 , 64 , bottleneck),
-            MoEResBlockv2(64 , 128, bottleneck, num_experts, top_k, stride=2), # 128x256
+            ResBlock(64 , 128 , bottleneck, stride=2),
+            # MoEResBlockv2(64 , 128, bottleneck, num_experts, top_k, stride=2), # 128x256
             ResBlock(128, 128, bottleneck),
             ResBlock(128, 128, bottleneck),
-            MoEResBlockv2(128, 128, bottleneck, num_experts, top_k, stride=2), # 128x128
+            ResBlock(128, 128, bottleneck, stride=2),
+            # MoEResBlockv2(128, 128, bottleneck, num_experts, top_k, stride=2), # 128x128
             ResBlock(128, 128, bottleneck),
             ResBlock(128, 128, bottleneck),
-            MoEResBlockv2(128, 128, bottleneck, num_experts, top_k, stride=2), # 128x64
+            ResBlock(128, 128, bottleneck, stride=2),
+            # MoEResBlockv2(128, 128, bottleneck, num_experts, top_k, stride=2), # 128x64
             ResBlock(128, 128, bottleneck),
             ResBlock(128, 128, bottleneck),
             ResBlock(128, 64 , bottleneck), #64x64

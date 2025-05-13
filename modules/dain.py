@@ -203,7 +203,8 @@ class MoEDAIN_Layer(nn.Module):
         self.gate_lr = gate_lr
         self.scale_lr = scale_lr
 
-        # Parameters for adaptive average
+        self.usage = torch.zeros(4)        # Parameters for adaptive average
+
         self.mean_layer = nn.Linear(input_dim, input_dim, bias=False)
         self.mean_layer.weight.data = torch.FloatTensor(data=np.eye(input_dim, input_dim))
 

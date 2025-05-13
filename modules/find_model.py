@@ -4,6 +4,7 @@ from modules.resnet import ResNet54Double, ResNet54
 from modules.filter import FIRResNet54Double, FIRResNet54, FilterResNet54Double
 from modules.moeresnet import MoEResNet54Double, MoEResNet54Doublev2, \
 MoEResNet54Doublev3, MoEResNet54Doublev4
+from modules.moeparallel import MoDEResNet54Double
 from modules.myresnetkan import ResNet54DoubleKAN, ResNet54KAN, ResNet54KAXN, ResNet54DoubleKAXN
 from modules.myresnetkanV2 import ResNet54DoubleKANv2, ResNet54KANv2, ResNet54KAXNv2, ResNet54DoubleKAXNv2
 from modules.wavelet import WavResNet54Double
@@ -176,6 +177,14 @@ def find_model(model_type, double, basis_type, base_type, bottleneck, grid_size,
         else:
             model = MoEResNet54Doublev4(bottleneck, num_experts, top_k).to(train_device)
             print("Architecture is: MoEResNet54Doublev4")
+    elif model_type == 'MoDE':
+        MoE = True
+        if double == 'no':
+            # model = MoEResNet54(num_experts, top_k).to(train_device)
+            print("Architecture is: MoDEResNet54")
+        else:
+            model = MoDEResNet54Double(bottleneck, num_experts, top_k).to(train_device)
+            print("Architecture is: MoDEResNet54Doublev4")
     else:
         raise TypeError(f"Model {model_type} is not supported")
     
