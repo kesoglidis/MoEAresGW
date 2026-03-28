@@ -9,6 +9,8 @@ from modules.myresnetkan import ResNet54DoubleKAN, ResNet54KAN, ResNet54KAXN, Re
 from modules.myresnetkanV2 import ResNet54DoubleKANv2, ResNet54KANv2, ResNet54KAXNv2, ResNet54DoubleKAXNv2
 from modules.wavelet import WavResNet54Double
 from modules.mymoe import MoEResNet54KAN, MoEResNet54DoubleKAN
+from modules.z2_resnet import Z2ResNet54, Z2ResNet54Double
+from modules.e2_resnet import E2ResNet54, E2ResNet54Double
 from modules.kan_convs.fast_kan_conv import FastKANConv1DLayer
 from modules.kan_convs import KABNConv1DLayer, KAJNConv1DLayer, KALNConv1DLayer, KANConv1DLayer, \
     KAGNConv1DLayerV2, KAGNConv1DLayer, BottleNeckKAGNConv1DLayer, ReLUKANConv1DLayer, BottleNeckReLUKANConv1DLayer
@@ -185,6 +187,20 @@ def find_model(model_type, double, basis_type, base_type, bottleneck, grid_size,
         else:
             model = MoDEResNet54Double(bottleneck, num_experts, top_k).to(train_device)
             print("Architecture is: MoDEResNet54Doublev4")
+    elif model_type == 'Z2':
+        if double == 'no':
+            model = Z2ResNet54(bottleneck).to(train_device)
+            print("Architecture is: Z2ResNet54")
+        else:
+            model = Z2ResNet54Double(bottleneck).to(train_device)
+            print("Architecture is: Z2ResNet54Double")
+    elif model_type == 'E2':
+        if double == 'no':
+            model = E2ResNet54(bottleneck).to(train_device)
+            print("Architecture is: E2ResNet54")
+        else:
+            model = E2ResNet54Double(bottleneck).to(train_device)
+            print("Architecture is: E2ResNet54Double")
     else:
         raise TypeError(f"Model {model_type} is not supported")
     
