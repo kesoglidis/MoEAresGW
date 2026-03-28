@@ -296,7 +296,7 @@ def get_triggers(Network, inputfile, step_size=0.1,
         data_loader = torch.utils.data.DataLoader(slicer,
                                                   batch_size=batch_size,
                                                   shuffle=False, num_workers=num_workers,
-                                                  pin_memory=True if 'cuda' in device else False)
+                                                  pin_memory=True if ('cuda' in str(device)) else False)
         ### Gradually apply network to all samples and if output exceeds the trigger threshold, save the time and the output value
         iterable = tqdm(data_loader, desc="Iterating over dataset") if verbose else data_loader
         for slice_batch, slice_times in iterable:

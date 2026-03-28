@@ -20,7 +20,7 @@ delta_f = 1 / 1.25
 
 
 def main(args):
-    device = 'cuda:0' if torch.cuda.device_count() > 0 else 'cpu'
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     base_model = ResNet54().to(device)
     norm = DAIN_Layer(input_dim=2).to(device)

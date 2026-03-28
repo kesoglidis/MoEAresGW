@@ -12,8 +12,9 @@ import torch
 import torch.nn as nn
 
 torch.manual_seed(0)
-torch.backends.cudnn.deterministic = False
-torch.backends.cudnn.benchmark = True
+if torch.backends.cudnn.is_available():
+    torch.backends.cudnn.deterministic = False
+    torch.backends.cudnn.benchmark = True
 
 from torch import nn
 from torch.utils.data import DataLoader
@@ -400,10 +401,10 @@ if __name__ == '__main__':
     training_group.add_argument('--p-augment', type=float, default=0.2,
                                 help="Percentage of samples where L1 noise is randomly replaced with different segment.")
     training_group.add_argument('--train-device', type=str, default='cuda',
-                                help="Device to train the network. Use 'cuda' for the GPU."
-                                     "Also, 'cpu:0', 'cuda:1', etc. (zero-indexed). Default: cpu")
-    training_group.add_argument('--num-workers', type=int, default=8,
-                                help="Number of workers to use when loading training data. Default: 8")
+                                help="Device to train the network. Use 'cuda' for GPU, 'cpu' for CPU. Default: cuda")
+    training_group.add_argument('--num-workers', type=int, default=0,
+                                help="Number of workers to use when loading training data. "
+                                     "Use 0 on Windows to avoid multiprocessing issues. Default: 0")
 
     args = parser.parse_args()
 

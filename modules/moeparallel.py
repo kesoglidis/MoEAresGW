@@ -39,7 +39,7 @@ class Parallelism():
 
         outputs = []
         for i in range(self.n):
-            with torch.cuda.device(self.devices[i]):
+            with torch.device(self.devices[i]):
                 outputs.append(fns[i](*args_per_device[i], **kwargs_per_device[i]))
 
         if isinstance(outputs[0], tuple):
@@ -217,7 +217,7 @@ class MoE(nn.Module):
         encourages all experts to be approximately equally used across a batch.
         """
 
-        gate_x = torch.flatten(self.avgpool(x), 1).to('cuda:0')
+        gate_x = torch.flatten(self.avgpool(x), 1)
         gates, load = self.noisy_top_k_gating(gate_x, train)
         # calculate importance loss
         importance = gates.sum(0)

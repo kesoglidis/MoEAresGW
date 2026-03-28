@@ -24,7 +24,7 @@ class WavConvND(nn.Module):
         # self.translation = nn.Parameter(torch.zeros(*_shapes))
 
         # self.t = torch.linspace(-1,1,2049).to('cuda:0')
-        self.t = torch.linspace(-1,1,129).to('cuda:0')
+        self.register_buffer('t', torch.linspace(-1, 1, 129))
 
         self.ndim = ndim
         self.wavelet_type = wavelet_type

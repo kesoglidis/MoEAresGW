@@ -189,7 +189,7 @@ class MoE(nn.Module):
         encourages all experts to be approximately equally used across a batch.
         """
 
-        gate_x = torch.flatten(self.avgpool(x), 1).to('cuda:0')
+        gate_x = torch.flatten(self.avgpool(x), 1)
         gates, load = self.noisy_top_k_gating(gate_x, train)
         # calculate importance loss
         importance = gates.sum(0)

@@ -25,7 +25,7 @@ delta_f = 1 / 1.25
 
 
 def main(args):
-    train_device = 'cuda:0' if torch.cuda.device_count() > 0 else 'cpu'
+    train_device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     if args.weights is not None:
         weights_path = args.weights
